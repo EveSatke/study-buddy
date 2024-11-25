@@ -5,19 +5,36 @@ from question import Question
 class QuestionManager(Question):
     file_path = "data/questions.csv"
     def __init__(self):
-        print("===ADD QUESTIONS===")
+        self.options = []
+        self.type = None
+        self.text = None
+        self.correct_option = None
+        self.correct_answer = None
+        
+        print("=== ADD QUESTIONS ===")
         print("Select question type:\n 1. Quiz\n 2. Free-form Text\n 3. Back to Main Menu\n")
-        question_type = input("Choose an option (1-3): ")
+        question_type = input("Choose type (1-3): ")
         if question_type == "1":
             self.type = "multiple_choice"
             self.text = input("Enter question text: ")
-            self.options = input("Enter answer options, seperated by ',' \n").split(",")
-            self.correct_option = input("Enter correct option number: ")
+            self.options_number = int(input("Enter number of options: "))
+            for num in range(self.options_number):
+                self.option = input(f"Enter option {num + 1}: ")
+                self.options.append(self.option)
+            self.correct_option = int(input(f"Enter correct option number (1-{self.options_number}): "))
+            print()
+            print("Question added successfully!")
+            print()
+
         elif question_type == "2":
             self.type = "freeform"
             self.text = input("Enter question text: ")
             self.correct_answer = input("Enter correct answer: ")
+            print()
+            print("Question added successfully!")
+            print()
         elif question_type == "3":
+            print()
             return
 
     def add_question(self):
