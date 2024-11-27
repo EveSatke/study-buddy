@@ -4,7 +4,7 @@ from dataclasses import asdict
 from question import Question
 
 class QuestionManager():
-    file_path = "data/questions.csv"
+    FILE_PATH = "data/questions.csv"
     MIN_QUESTIONS = 5
 
     def __init__(self):
@@ -16,10 +16,15 @@ class QuestionManager():
         
     def create_question(self):
         while True:
-            print("\n=== ADD QUESTIONS ===")
-            print("Select question type:\n 1. Quiz\n 2. Free-form \n 3. Back to Main Menu\n")
-            question_type = input("Choose type (1-3): ")
+            print(
+            "\n=== ADD QUESTIONS ===\n"
+            "Select question type:\n"
+            "1. Quiz\n" 
+            "2. Free-form\n"
+            "3. Back to Main Menu\n")
 
+            question_type = input("Choose type (1-3): ")
+            print(f"\nQuestion {self.get_question_count() + 1}")
             if question_type == "1":
                 self.text = input("Enter question text: ")
                 while True:
@@ -70,26 +75,27 @@ class QuestionManager():
 
     def add_question(self, question_data: Question):
         fieldnames = ["id", "type", "text", "is_active", "times_shown", "times_correct", "options", "correct_option", "correct_answer"]
-        if not os.path.isfile(self.file_path):
-            with open(self.file_path, "w", newline='') as file:
+        if not os.path.isfile(self.FILE_PATH):
+            with open(self.FILE_PATH, "w", newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=fieldnames)
                 writer.writeheader()
             
-        with open(self.file_path, "a", newline='') as file:
+        with open(self.FILE_PATH, "a", newline='') as file:
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writerow(asdict(question_data))
-        print("\nQuestion added successfully!")
+        print("\nQuestion added successfully!\n")
+    
 
     def _generate_id(self):
         try:
-            with open(self.file_path, "r") as file:
+            with open(self.FILE_PATH, "r") as file:
                 return sum(1 for line in file)
         except FileNotFoundError:
             return 0
 
     def get_question_count(self):
         try:
-            with open(self.file_path, "r") as file:
+            with open(self.FILE_PATH, "r") as file:
                 return sum(1 for line in file) - 1
         except FileNotFoundError:
             return 0
