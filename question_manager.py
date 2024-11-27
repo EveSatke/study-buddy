@@ -1,9 +1,12 @@
 import csv
 import os
+from dataclasses import asdict
 from question import Question
 
-class QuestionManager(Question):
+class QuestionManager():
     file_path = "data/questions.csv"
+    MIN_QUESTIONS = 5
+
     def __init__(self):
         self.options = []
         self.type = None
@@ -11,33 +14,61 @@ class QuestionManager(Question):
         self.correct_option = None
         self.correct_answer = None
         
-        print("=== ADD QUESTIONS ===")
-        print("Select question type:\n 1. Quiz\n 2. Free-form Text\n 3. Back to Main Menu\n")
-        question_type = input("Choose type (1-3): ")
-        if question_type == "1":
-            self.type = "multiple_choice"
-            self.text = input("Enter question text: ")
-            self.options_number = int(input("Enter number of options: "))
-            for num in range(self.options_number):
-                self.option = input(f"Enter option {num + 1}: ")
-                self.options.append(self.option)
-            self.correct_option = int(input(f"Enter correct option number (1-{self.options_number}): "))
-            print()
-            print("Question added successfully!")
-            print()
+    def create_question(self):
+        while True:
+            print("\n=== ADD QUESTIONS ===")
+            print("Select question type:\n 1. Quiz\n 2. Free-form \n 3. Back to Main Menu\n")
+            question_type = input("Choose type (1-3): ")
 
-        elif question_type == "2":
-            self.type = "freeform"
-            self.text = input("Enter question text: ")
-            self.correct_answer = input("Enter correct answer: ")
-            print()
-            print("Question added successfully!")
-            print()
-        elif question_type == "3":
-            print()
-            return
+            if question_type == "1":
+                self.text = input("Enter question text: ")
+                while True:
+                    try:
+                        self.options_number = int(input("Enter number of options: "))
+                        for num in range(self.options_number):
+                            self.option = input(f"Enter option {num + 1}: ")
+                            self.options.append(self.option)
+                        self.correct_option = int(input(f"Enter correct option number (1-{self.options_number}): "))
+                        break
+                    except ValueError:
+                        print("Invalid input. Please enter a number.")
+                        continue
+                multiple_question = Question(
+                    id=self._generate_id(),
+                    type="quiz",
+                    text=self.text,
+                    is_active=True,
+                    times_shown=0,
+                    times_correct=0,
+                    options=self.options,
+                    correct_option=self.correct_option,
+                    correct_answer=None
+                )
+                self.add_question(multiple_question)
 
-    def add_question(self):
+            elif question_type == "2":
+                self.text = input("Enter question text: ")
+                self.correct_answer = input("Enter correct answer: ")
+                freeform_question = Question(
+                    id=self._generate_id(),
+                    type="freeform",
+                    text=self.text,
+                    is_active=True,
+                    times_shown=0,
+                    times_correct=0,
+                    options=None,
+                    correct_option=None,
+                    correct_answer=self.correct_answer
+                )
+                self.add_question(freeform_question)
+            elif question_type == "3":
+                return False
+            else:
+                print("Invalid choice. Please try again.")
+                continue
+            return True
+
+    def add_question(self, question_data: Question):
         fieldnames = ["id", "type", "text", "is_active", "times_shown", "times_correct", "options", "correct_option", "correct_answer"]
         if not os.path.isfile(self.file_path):
             with open(self.file_path, "w", newline='') as file:
@@ -46,17 +77,8 @@ class QuestionManager(Question):
             
         with open(self.file_path, "a", newline='') as file:
             writer = csv.DictWriter(file, fieldnames=fieldnames)
-            writer.writerow({
-                "id": self._generate_id(),
-                "type": self.type,
-                "text": self.text, 
-                "is_active": True, 
-                "times_shown": 0, 
-                "times_correct": 0, 
-                "options": self.options, 
-                "correct_option": self.correct_option,
-                "correct_answer": self.correct_answer
-                })
+            writer.writerow(asdict(question_data))
+        print("\nQuestion added successfully!")
 
     def _generate_id(self):
         try:
@@ -64,3 +86,13 @@ class QuestionManager(Question):
                 return sum(1 for line in file)
         except FileNotFoundError:
             return 0
+
+    def get_question_count(self):
+        try:
+            with open(self.file_path, "r") as file:
+                return sum(1 for line in file) - 1
+        except FileNotFoundError:
+            return 0
+
+    def has_minimum_questions(self):
+        return self.get_question_count() >= self.MIN_QUESTIONS
