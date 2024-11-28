@@ -1,21 +1,44 @@
 from question_manager import QuestionManager
-
-"""
-=== STUDY BUDDY ===
-1. Add Questions
-2. View Statistics
-3. Manage Questions (Enable/Disable)
-4. Practice Mode
-5. Test Mode
-6. Exit
-"""
+from statistics import Statistics
 
 class StudyBuddy:
     def __init__(self):
         self.question_manager = QuestionManager()
+        self.questions_statistics = Statistics()
+        
 
-    def run(self):
-        self.question_manager.add_question()
+    def main_menu(self):
+        while True:
+            print(
+            "\n=== STUDY BUDDY ===\n"
+            "1. Add Questions\n"
+            "2. View Statistics\n"
+            "3. Manage Questions (Enable/Disable)\n"
+            "4. Practice Mode\n"
+            "5. Test Mode\n"
+            "6. Exit\n")
 
-study_buddy = StudyBuddy()
-study_buddy.run()
+            choice = input("Choose an option (1-6): ")
+            if choice == "1":
+                self.add_questions()
+            elif choice == "2":
+                self.questions_statistics.print_statistics()
+            elif choice == "4" or choice == "5":
+                if not self.question_manager.has_minimum_questions():
+                    print(f"\nYou need at least {self.question_manager.MIN_QUESTIONS} questions before starting Practice/Test mode.")
+                    print(f"Please add {self.question_manager.MIN_QUESTIONS - self.question_manager.get_question_count()} more questions.")
+                    self.add_questions()
+            elif choice == "6":
+                print("Exiting...")
+                break
+
+    def add_questions(self):
+        remaining = max((self.question_manager.MIN_QUESTIONS - self.question_manager.get_question_count()), 1)
+
+        while remaining > 0:
+            if self.question_manager.create_question():
+                remaining -= 1
+            else:
+                break
+
+    
