@@ -13,65 +13,113 @@ class QuestionManager():
         self.text = None
         self.correct_option = None
         self.correct_answer = None
-        
-    def create_question(self):
-        while True:
-            print(
+
+    def get_question_type(self):
+        print(
             "\n=== ADD QUESTIONS ===\n"
             "Select question type:\n"
             "1. Quiz\n" 
             "2. Free-form\n"
-            "3. Back to Main Menu\n")
+            "3. Back to Main Menu\n"
+            )
+        return input("Choose type (1-3): ")
+      
+    def get_text_input(self, prompt):
+        while True:
+            text = input(prompt).strip()
+            if text:
+                return text
+            print("Input cannot be empty. Please try again.")
 
-            question_type = input("Choose type (1-3): ")
-            print(f"\nQuestion {self.get_question_count() + 1}")
-            if question_type == "1":
-                self.text = input("Enter question text: ")
-                while True:
-                    try:
-                        self.options_number = int(input("Enter number of options: "))
-                        for num in range(self.options_number):
-                            self.option = input(f"Enter option {num + 1}: ")
-                            self.options.append(self.option)
-                        self.correct_option = int(input(f"Enter correct option number (1-{self.options_number}): "))
-                        break
-                    except ValueError:
-                        print("Invalid input. Please enter a number.")
-                        continue
-                multiple_question = Question(
-                    id=self._generate_id(),
-                    type="quiz",
-                    text=self.text,
-                    is_active=True,
-                    times_shown=0,
-                    times_correct=0,
-                    options=self.options,
-                    correct_option=self.correct_option,
-                    correct_answer=None
-                )
-                self.add_question(multiple_question)
+    def get_number_input(self, prompt, min_value, max_value):
+        while True:
+            try:
+                number = int(input(prompt))
+                if min_value <= number <= max_value:
+                    return number
+                print(f"Please enter a number between {min_value} to {max_value}")
+            except ValueError:
+                print("Invalid input. Please enter a number.")
+                pass
 
-            elif question_type == "2":
-                self.text = input("Enter question text: ")
-                self.correct_answer = input("Enter correct answer: ")
-                freeform_question = Question(
-                    id=self._generate_id(),
-                    type="freeform",
-                    text=self.text,
-                    is_active=True,
-                    times_shown=0,
-                    times_correct=0,
-                    options=None,
-                    correct_option=None,
-                    correct_answer=self.correct_answer
-                )
-                self.add_question(freeform_question)
-            elif question_type == "3":
-                return False
-            else:
-                print("Invalid choice. Please try again.")
+    def _generate_id(self):
+        try:
+            with open(self.FILE_PATH, "r") as file:
+                return sum(1 for line in file)
+        except FileNotFoundError:
+            return 0
+
+    def form_multiple_question(self):
+        text = self.get_text_input("Enter question text: ")
+        options_number = self.get_number_input("Enter number of options: ", 2, 6)
+
+        options = []
+        for num in range(options_number):
+            option = self.get_text_input(f"Enter option {num + 1}: ")
+            options.append(option)
+        correct_option = self.get_number_input(
+            f"Enter correct option number (1-{options_number}): ", 
+            1, 
+            options_number
+            )
+        
+        return Question(
+            id=self._generate_id(),
+            type="quiz",
+            text=text,
+            is_active=True,
+            times_shown=0,
+            times_correct=0,
+            options=options,
+            correct_option=correct_option,
+            correct_answer=None
+        )
+    
+    def form_freeform_question(self):
+        text = self.get_text_input("Enter question text: ")
+        correct_answer = self.get_text_input("Enter correct answer: ")
+
+        return Question(
+            id=self._generate_id(),
+            type="freeform",
+            text=text,
+            is_active=True,
+            times_shown=0,
+            times_correct=0,
+            options=None,
+            correct_option=None,
+            correct_answer=correct_answer
+        )
+
+    def get_question_count(self):
+        try:
+            with open(self.FILE_PATH, "r") as file:
+                return sum(1 for line in file) - 1
+        except FileNotFoundError:
+            return 0
+        
+    def create_question(self):
+        while True:
+            question_type = self.get_question_type()
+            try:
+                if question_type == "1":
+                    print(f"\nQuestion {self.get_question_count() + 1}")
+                    formed_question = self.form_multiple_question()
+                elif question_type == "2":
+                    print(f"\nQuestion {self.get_question_count() + 1}")
+                    formed_question = self.form_freeform_question()
+                elif question_type == "3":
+                    return False
+                else:
+                    print("Invalid choice. Please try again.")
+                    continue
+                self.add_question(formed_question)
+                return True
+
+            except Exception as e:
+                print(f"Error creating question: {e}")
                 continue
-            return True
+            
 
     def add_question(self, question_data: Question):
         fieldnames = ["id", "type", "text", "is_active", "times_shown", "times_correct", "options", "correct_option", "correct_answer"]
@@ -85,20 +133,6 @@ class QuestionManager():
             writer.writerow(asdict(question_data))
         print("\nQuestion added successfully!\n")
     
-
-    def _generate_id(self):
-        try:
-            with open(self.FILE_PATH, "r") as file:
-                return sum(1 for line in file)
-        except FileNotFoundError:
-            return 0
-
-    def get_question_count(self):
-        try:
-            with open(self.FILE_PATH, "r") as file:
-                return sum(1 for line in file) - 1
-        except FileNotFoundError:
-            return 0
 
     def has_minimum_questions(self):
         return self.get_question_count() >= self.MIN_QUESTIONS
