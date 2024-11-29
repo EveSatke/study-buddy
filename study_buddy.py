@@ -1,10 +1,10 @@
 from question_manager import QuestionManager
-from statistics import Statistics
+from question_statistics import QuestionStatistics
 
 class StudyBuddy:
     def __init__(self):
         self.question_manager = QuestionManager()
-        self.questions_statistics = Statistics()
+        self.questions_statistics = QuestionStatistics()
         
 
     def main_menu(self):
@@ -20,25 +20,18 @@ class StudyBuddy:
 
             choice = input("Choose an option (1-6): ")
             if choice == "1":
-                self.add_questions()
+                self.question_manager.add_questions()
             elif choice == "2":
                 self.questions_statistics.print_statistics()
+            elif choice == "3":
+                self.question_manager.questions()
             elif choice == "4" or choice == "5":
                 if not self.question_manager.has_minimum_questions():
                     print(f"\nYou need at least {self.question_manager.MIN_QUESTIONS} questions before starting Practice/Test mode.")
                     print(f"Please add {self.question_manager.MIN_QUESTIONS - self.question_manager.get_question_count()} more questions.")
-                    self.add_questions()
+                    self.question_manager.add_questions()
             elif choice == "6":
                 print("Exiting...")
-                break
-
-    def add_questions(self):
-        remaining = max((self.question_manager.MIN_QUESTIONS - self.question_manager.get_question_count()), 1)
-
-        while remaining > 0:
-            if self.question_manager.create_question():
-                remaining -= 1
-            else:
                 break
 
     

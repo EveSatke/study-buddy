@@ -8,11 +8,33 @@ class QuestionManager():
     MIN_QUESTIONS = 5
 
     def __init__(self):
+        self.questions = []
         self.options = []
         self.type = None
         self.text = None
         self.correct_option = None
         self.correct_answer = None
+        self.load_questions()
+
+
+    def __str__(self):
+        return f"questions: {self._questions}"
+
+    @property
+    def questions(self):
+        return self._questions
+        
+    @questions.setter
+    def questions(self, value):
+        self._questions = value
+    
+    def load_questions(self):
+        try:
+            with open(self.FILE_PATH, "r") as file:
+                reader = csv.DictReader(file)
+                self._questions = [Question(**row) for row in reader]
+        except FileNotFoundError:
+            self._questions = []
 
     def get_question_type(self):
         print(
@@ -42,7 +64,7 @@ class QuestionManager():
                 print("Invalid input. Please enter a number.")
                 pass
 
-    def _generate_id(self):
+    def generate_id(self):
         try:
             with open(self.FILE_PATH, "r") as file:
                 return sum(1 for line in file)
@@ -64,7 +86,7 @@ class QuestionManager():
             )
         
         return Question(
-            id=self._generate_id(),
+            id=self.generate_id(),
             type="quiz",
             text=text,
             is_active=True,
@@ -80,7 +102,7 @@ class QuestionManager():
         correct_answer = self.get_text_input("Enter correct answer: ")
 
         return Question(
-            id=self._generate_id(),
+            id=self.generate_id(),
             type="freeform",
             text=text,
             is_active=True,
@@ -97,7 +119,7 @@ class QuestionManager():
                 return sum(1 for line in file) - 1
         except FileNotFoundError:
             return 0
-        
+
     def create_question(self):
         while True:
             question_type = self.get_question_type()
@@ -136,3 +158,12 @@ class QuestionManager():
 
     def has_minimum_questions(self):
         return self.get_question_count() >= self.MIN_QUESTIONS
+    
+    def add_questions(self):
+        remaining = max((self.MIN_QUESTIONS - self.get_question_count()), 1)
+
+        while remaining > 0:
+            if self.create_question():
+                remaining -= 1
+            else:
+                break
