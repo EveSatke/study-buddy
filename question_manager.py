@@ -8,7 +8,7 @@ class QuestionManager():
     MIN_QUESTIONS = 5
 
     def __init__(self):
-        self.questions = []
+        self._questions = []
         self.options = []
         self.type = None
         self.text = None
@@ -53,10 +53,15 @@ class QuestionManager():
                 return text
             print("Input cannot be empty. Please try again.")
 
-    def get_number_input(self, prompt, min_value, max_value):
+    def get_number_input(self, prompt, min_value, max_value, allow_exit=False):
         while True:
+            user_input = input(prompt).strip()
+
+            if allow_exit and user_input.lower() == "q":
+                return None
+            
             try:
-                number = int(input(prompt))
+                number = int(user_input)
                 if min_value <= number <= max_value:
                     return number
                 print(f"Please enter a number between {min_value} to {max_value}")
@@ -64,16 +69,16 @@ class QuestionManager():
                 print("Invalid input. Please enter a number.")
                 pass
 
-    def generate_id(self):
+    def _generate_id(self):
         try:
             with open(self.FILE_PATH, "r") as file:
                 return sum(1 for line in file)
         except FileNotFoundError:
-            return 0
+            return 1
 
     def form_multiple_question(self):
         text = self.get_text_input("Enter question text: ")
-        options_number = self.get_number_input("Enter number of options: ", 2, 6)
+        options_number = self.get_number_input("Enter number of options: ", 2, 6, allow_exit=False)
 
         options = []
         for num in range(options_number):
@@ -82,11 +87,12 @@ class QuestionManager():
         correct_option = self.get_number_input(
             f"Enter correct option number (1-{options_number}): ", 
             1, 
-            options_number
+            options_number,
+            allow_exit = False
             )
         
         return Question(
-            id=self.generate_id(),
+            id=self._generate_id(),
             type="quiz",
             text=text,
             is_active=True,
@@ -102,7 +108,7 @@ class QuestionManager():
         correct_answer = self.get_text_input("Enter correct answer: ")
 
         return Question(
-            id=self.generate_id(),
+            id=self._generate_id(),
             type="freeform",
             text=text,
             is_active=True,
@@ -145,6 +151,7 @@ class QuestionManager():
 
     def add_question(self, question_data: Question):
         fieldnames = ["id", "type", "text", "is_active", "times_shown", "times_correct", "options", "correct_option", "correct_answer"]
+        
         if not os.path.isfile(self.FILE_PATH):
             with open(self.FILE_PATH, "w", newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -153,6 +160,8 @@ class QuestionManager():
         with open(self.FILE_PATH, "a", newline='') as file:
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writerow(asdict(question_data))
+        
+        self._questions.append(question_data)
         print("\nQuestion added successfully!\n")
     
 
@@ -167,3 +176,18 @@ class QuestionManager():
                 remaining -= 1
             else:
                 break
+
+    def display_questions_status(self):
+        questions = self.questions
+        print("\n=== ENABLE/DISABLE QUESTIONS ===\n")
+
+        print("Current Questions:")
+        print(f"{'ID':<4} {'Status':<10} {'Type':<10} {'Question Preview':<50}")
+        print("-" * 74)
+
+        for question in questions:
+            status = "[ACTIVE]" if question.is_active else "[INACTIVE]"
+            preview = question.text[:40] + "..." if len(question.text) > 40 else question.text
+            print(f"{question.id:<4} {status:<10} {question.type:<10} {preview:<50}")
+            
+        question_id = self.get_number_input("\nEnter question ID to toggle status (or 'q' to quit): ", 1, self.get_question_count(), allow_exit=True)
