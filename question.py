@@ -9,6 +9,6 @@ class Question:
     is_active: bool
     times_shown: int
     times_correct: int
-    options: Optional[List[str]]
+    options: Optional[List]
     correct_option: Optional[int] 
     correct_answer: Optional[str]

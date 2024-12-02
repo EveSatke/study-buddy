@@ -5,34 +5,37 @@ from question import Question
 
 class QuestionManager():
     FILE_PATH = "data/questions.csv"
+    FIELDNAMES = ["id", "type", "text", "is_active", "times_shown", "times_correct", "options", "correct_option", "correct_answer"]
     MIN_QUESTIONS = 5
 
     def __init__(self):
         self._questions = []
-        self.options = []
-        self.type = None
-        self.text = None
-        self.correct_option = None
-        self.correct_answer = None
         self.load_questions()
-
+        print(self._questions)
 
     def __str__(self):
         return f"questions: {self._questions}"
 
-    @property
-    def questions(self):
-        return self._questions
-        
-    @questions.setter
-    def questions(self, value):
-        self._questions = value
     
     def load_questions(self):
         try:
             with open(self.FILE_PATH, "r") as file:
                 reader = csv.DictReader(file)
-                self._questions = [Question(**row) for row in reader]
+                for row in reader:
+                    question = Question(
+                        id=int(row["id"]),
+                        type=row["type"],
+                        text = row["text"],
+                        is_active=row["is_active"],
+                        times_shown=int(row["times_shown"]),
+                        times_correct=int(row["times_correct"]),
+                        options=row["options"].strip("[]").replace("'", "").split(", ") if row["options"] else None,
+                        correct_option=int(row["correct_option"]) if row["correct_option"] else None,
+                        correct_answer=row["correct_answer"] if row["correct_answer"] else None
+                    )
+                    self._questions.append(question)
+        except (ValueError, KeyError) as e:
+            print(f"Error loading question: {e}")
         except FileNotFoundError:
             self._questions = []
 
@@ -150,15 +153,13 @@ class QuestionManager():
             
 
     def add_question(self, question_data: Question):
-        fieldnames = ["id", "type", "text", "is_active", "times_shown", "times_correct", "options", "correct_option", "correct_answer"]
-        
         if not os.path.isfile(self.FILE_PATH):
             with open(self.FILE_PATH, "w", newline='') as file:
-                writer = csv.DictWriter(file, fieldnames=fieldnames)
+                writer = csv.DictWriter(file, fieldnames=self.FIELDNAMES)
                 writer.writeheader()
             
         with open(self.FILE_PATH, "a", newline='') as file:
-            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer = csv.DictWriter(file, fieldnames=self.FIELDNAMES)
             writer.writerow(asdict(question_data))
         
         self._questions.append(question_data)
@@ -178,7 +179,7 @@ class QuestionManager():
                 break
 
     def display_questions_status(self):
-        questions = self.questions
+        questions = self._questions
         print("\n=== ENABLE/DISABLE QUESTIONS ===\n")
 
         print("Current Questions:")
@@ -189,5 +190,59 @@ class QuestionManager():
             status = "[ACTIVE]" if question.is_active else "[INACTIVE]"
             preview = question.text[:40] + "..." if len(question.text) > 40 else question.text
             print(f"{question.id:<4} {status:<10} {question.type:<10} {preview:<50}")
-            
+
+        return questions
+    
+    def get_question_details(self, questions):
         question_id = self.get_number_input("\nEnter question ID to toggle status (or 'q' to quit): ", 1, self.get_question_count(), allow_exit=True)
+        if question_id is None:
+            return None
+            
+        for q in questions:
+            if int(q.id) == question_id:
+                print(
+                    "Question Details:\n"
+                    "----------------\n"
+                    f"ID: {q.id}\n"
+                    f"Type: {q.type}\n"
+                    f"Status: {"[ACTIVE]" if q.is_active else "[INACTIVE]"}\n"
+                    f"Text: {q.text}"
+                )
+                if q.type == "quiz":
+                    print("Options:")
+                    for i, option in enumerate(q.options, 1):
+                        print(f"{i}. {option}")
+                    print(f"Correct option: {q.correct_option}")
+                else:
+                    print(f"Correct answer: {q.correct_answer}")
+                return q
+                
+        print(f"\nNo question found with ID {question_id}")
+        return None
+    
+                    
+    def manage_question_status(self):
+        while True:
+            questions = self.display_questions_status()
+            selected_question = self.get_question_details(questions)
+            if selected_question is None:
+                break
+            elif selected_question.is_active:
+                disable_question = self.get_text_input("\nDo you want to disable this question? (y/n): ")
+                if disable_question.lower() == "y":
+                    selected_question.is_active = False
+                    self._questions[selected_question.id - 1] = selected_question
+                    self.update_questions(self._questions)
+            else:
+                enable_question = self.get_text_input("\nDo you want to enable this question? (y/n): ")
+                if enable_question.lower() == "y":
+                    selected_question.is_active = True
+                    self._questions[selected_question.id - 1] = selected_question
+                    self.update_questions(self._questions)
+
+    def update_questions(self, questions_data:list[Question]):
+        with open(self.FILE_PATH, "w", newline='') as file:
+            writer = csv.DictWriter(file, fieldnames = self.FIELDNAMES)
+            writer.writeheader()
+            for question in questions_data:
+                writer.writerow(asdict(question))

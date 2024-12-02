@@ -49,7 +49,7 @@ class StudyBuddy:
     
     def _handle_manage_questions(self):
         if self._check_questions_exist():
-            self.question_manager.display_questions_status()
+            self.question_manager.manage_question_status()
         return True
     
     def _handle_practice_mode(self):
