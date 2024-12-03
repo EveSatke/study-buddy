@@ -1,10 +1,12 @@
 from question_manager import QuestionManager
 from question_statistics import QuestionStatistics
+from practice_test_manager import PracticeTestManager
 
 class StudyBuddy:
     def __init__(self):
         self.question_manager = QuestionManager()
         self.questions_statistics = QuestionStatistics(self.question_manager)
+        self.practice_test_manager = PracticeTestManager(self.question_manager)
         self.menu_options = {
             "1": self._handle_add_questions,
             "2": self._handle_statistics,
@@ -57,6 +59,8 @@ class StudyBuddy:
             print(f"\nYou need at least {self.question_manager.MIN_QUESTIONS} questions before starting Practice/Test mode.")
             print(f"Please add {self.question_manager.MIN_QUESTIONS - self.question_manager.get_question_count()} more questions.")
             self.question_manager.add_questions()
+        else:
+            self.practice_test_manager.practice_mode()
         return True
     
     def _handle_exit(self):
