@@ -11,8 +11,8 @@ class StudyBuddy:
             "1": self._handle_add_questions,
             "2": self._handle_statistics,
             "3": self._handle_manage_questions,
-            "4": self._handle_practice_mode,
-            "5": self._handle_practice_mode,
+            "4": lambda:self._handle_mode("practice"),
+            "5": lambda:self._handle_mode("test"),
             "6": self._handle_exit
         }
         
@@ -54,13 +54,16 @@ class StudyBuddy:
             self.question_manager.manage_question_status()
         return True
     
-    def _handle_practice_mode(self):
+    def _handle_mode(self, mode):
         if not self.question_manager.has_minimum_questions():
             print(f"\nYou need at least {self.question_manager.MIN_QUESTIONS} questions before starting Practice/Test mode.")
             print(f"Please add {self.question_manager.MIN_QUESTIONS - self.question_manager.get_question_count()} more questions.")
             self.question_manager.add_questions()
         else:
-            self.practice_test_manager.practice_mode()
+            if mode == "practice":
+                self.practice_test_manager.practice_mode()
+            elif mode == "test":
+                self.practice_test_manager.test_mode()
         return True
     
     def _handle_exit(self):

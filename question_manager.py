@@ -173,7 +173,7 @@ class QuestionManager():
     
     def get_question_details(self, questions):
         question_id = get_number_input("\nEnter question ID to toggle status (or 'q' to quit): ", 1, self.get_question_count(), allow_exit=True)
-        if question_id is None:
+        if question_id == "q":
             return None
             
         for q in questions:
