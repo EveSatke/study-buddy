@@ -7,7 +7,7 @@ class QuestionStatistics:
         self.question_manager = question_manager
 
     def print_statistics(self):
-        questions = self.question_manager._questions
+        questions = self.question_manager.questions
         print(questions)
             
         self.active_count = sum(1 for q in questions if q.is_active)

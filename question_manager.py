@@ -2,6 +2,7 @@ import csv
 import os
 from dataclasses import asdict
 from question import Question
+from utils.helpers import get_text_input, get_number_input
 
 class QuestionManager():
     FILE_PATH = "data/questions.csv"
@@ -9,12 +10,11 @@ class QuestionManager():
     MIN_QUESTIONS = 5
 
     def __init__(self):
-        self._questions = []
+        self.questions = []
         self.load_questions()
-        print(self._questions)
 
     def __str__(self):
-        return f"questions: {self._questions}"
+        return f"questions: {self.questions}"
 
     
     def load_questions(self):
@@ -26,18 +26,18 @@ class QuestionManager():
                         id=int(row["id"]),
                         type=row["type"],
                         text = row["text"],
-                        is_active=row["is_active"],
+                        is_active=row["is_active"].strip().lower() == "true",
                         times_shown=int(row["times_shown"]),
                         times_correct=int(row["times_correct"]),
                         options=row["options"].strip("[]").replace("'", "").split(", ") if row["options"] else None,
                         correct_option=int(row["correct_option"]) if row["correct_option"] else None,
                         correct_answer=row["correct_answer"] if row["correct_answer"] else None
                     )
-                    self._questions.append(question)
+                    self.questions.append(question)
         except (ValueError, KeyError) as e:
             print(f"Error loading question: {e}")
         except FileNotFoundError:
-            self._questions = []
+            self.questions = []
 
     def get_question_type(self):
         print(
@@ -49,28 +49,6 @@ class QuestionManager():
             )
         return input("Choose type (1-3): ")
       
-    def get_text_input(self, prompt):
-        while True:
-            text = input(prompt).strip()
-            if text:
-                return text
-            print("Input cannot be empty. Please try again.")
-
-    def get_number_input(self, prompt, min_value, max_value, allow_exit=False):
-        while True:
-            user_input = input(prompt).strip()
-
-            if allow_exit and user_input.lower() == "q":
-                return None
-            
-            try:
-                number = int(user_input)
-                if min_value <= number <= max_value:
-                    return number
-                print(f"Please enter a number between {min_value} to {max_value}")
-            except ValueError:
-                print("Invalid input. Please enter a number.")
-                pass
 
     def _generate_id(self):
         try:
@@ -79,15 +57,15 @@ class QuestionManager():
         except FileNotFoundError:
             return 1
 
-    def form_multiple_question(self):
-        text = self.get_text_input("Enter question text: ")
-        options_number = self.get_number_input("Enter number of options: ", 2, 6, allow_exit=False)
+    def form_quiz_question(self):
+        text = get_text_input("Enter question text: ")
+        options_number = get_number_input("Enter number of options: ", 2, 6, allow_exit=False)
 
         options = []
         for num in range(options_number):
-            option = self.get_text_input(f"Enter option {num + 1}: ")
+            option = get_text_input(f"Enter option {num + 1}: ")
             options.append(option)
-        correct_option = self.get_number_input(
+        correct_option = get_number_input(
             f"Enter correct option number (1-{options_number}): ", 
             1, 
             options_number,
@@ -107,8 +85,8 @@ class QuestionManager():
         )
     
     def form_freeform_question(self):
-        text = self.get_text_input("Enter question text: ")
-        correct_answer = self.get_text_input("Enter correct answer: ")
+        text = get_text_input("Enter question text: ")
+        correct_answer = get_text_input("Enter correct answer: ")
 
         return Question(
             id=self._generate_id(),
@@ -135,7 +113,7 @@ class QuestionManager():
             try:
                 if question_type == "1":
                     print(f"\nQuestion {self.get_question_count() + 1}")
-                    formed_question = self.form_multiple_question()
+                    formed_question = self.form_quiz_question()
                 elif question_type == "2":
                     print(f"\nQuestion {self.get_question_count() + 1}")
                     formed_question = self.form_freeform_question()
@@ -162,7 +140,7 @@ class QuestionManager():
             writer = csv.DictWriter(file, fieldnames=self.FIELDNAMES)
             writer.writerow(asdict(question_data))
         
-        self._questions.append(question_data)
+        self.questions.append(question_data)
         print("\nQuestion added successfully!\n")
     
 
@@ -179,7 +157,7 @@ class QuestionManager():
                 break
 
     def display_questions_status(self):
-        questions = self._questions
+        questions = self.questions
         print("\n=== ENABLE/DISABLE QUESTIONS ===\n")
 
         print("Current Questions:")
@@ -194,7 +172,7 @@ class QuestionManager():
         return questions
     
     def get_question_details(self, questions):
-        question_id = self.get_number_input("\nEnter question ID to toggle status (or 'q' to quit): ", 1, self.get_question_count(), allow_exit=True)
+        question_id = get_number_input("\nEnter question ID to toggle status (or 'q' to quit): ", 1, self.get_question_count(), allow_exit=True)
         if question_id is None:
             return None
             
@@ -228,17 +206,17 @@ class QuestionManager():
             if selected_question is None:
                 break
             elif selected_question.is_active:
-                disable_question = self.get_text_input("\nDo you want to disable this question? (y/n): ")
+                disable_question = get_text_input("\nDo you want to disable this question? (y/n): ")
                 if disable_question.lower() == "y":
                     selected_question.is_active = False
-                    self._questions[selected_question.id - 1] = selected_question
-                    self.update_questions(self._questions)
+                    self.questions[selected_question.id - 1] = selected_question
+                    self.update_questions(self.questions)
             else:
-                enable_question = self.get_text_input("\nDo you want to enable this question? (y/n): ")
+                enable_question = get_text_input("\nDo you want to enable this question? (y/n): ")
                 if enable_question.lower() == "y":
                     selected_question.is_active = True
-                    self._questions[selected_question.id - 1] = selected_question
-                    self.update_questions(self._questions)
+                    self.questions[selected_question.id - 1] = selected_question
+                    self.update_questions(self.questions)
 
     def update_questions(self, questions_data:list[Question]):
         with open(self.FILE_PATH, "w", newline='') as file:
