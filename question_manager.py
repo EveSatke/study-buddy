@@ -1,7 +1,8 @@
 import csv
 import os
-from dataclasses import asdict
-from question import Question
+import ast
+from typing import List
+from question_models import Quiz, Freeform
 from utils.helpers import get_text_input, get_number_input
 
 class QuestionManager():
@@ -14,7 +15,7 @@ class QuestionManager():
         self.load_questions()
 
     def __str__(self):
-        return f"questions: {self.questions}"
+        return f"questions: {[q.text for q in self.questions]}"
 
     
     def load_questions(self):
@@ -22,19 +23,29 @@ class QuestionManager():
             with open(self.FILE_PATH, "r") as file:
                 reader = csv.DictReader(file)
                 for row in reader:
-                    question = Question(
-                        id=int(row["id"]),
-                        type=row["type"],
-                        text = row["text"],
-                        is_active=row["is_active"].strip().lower() == "true",
-                        times_shown=int(row["times_shown"]),
-                        times_correct=int(row["times_correct"]),
-                        options=row["options"].strip("[]").replace("'", "").split(", ") if row["options"] else None,
-                        correct_option=int(row["correct_option"]) if row["correct_option"] else None,
-                        correct_answer=row["correct_answer"] if row["correct_answer"] else None
-                    )
+                    if row["type"] == "quiz":
+                        question = Quiz(
+                            id=int(row["id"]),
+                            type=row["type"],
+                            text=row["text"],
+                            is_active=row["is_active"] == 'True',
+                            times_shown=int(row["times_shown"]),
+                            times_correct=int(row["times_correct"]),
+                            options=ast.literal_eval(row["options"]),
+                            correct_option=int(row["correct_option"])
+                        )
+                    else:
+                        question = Freeform(
+                            id=int(row["id"]),
+                            type=row["type"],
+                            text=row["text"],
+                            is_active=row["is_active"] == 'True',
+                            times_shown=int(row["times_shown"]),
+                            times_correct=int(row["times_correct"]),
+                            correct_answer=row["correct_answer"]
+                        )
                     self.questions.append(question)
-        except (ValueError, KeyError) as e:
+        except (ValueError, KeyError, SyntaxError) as e:
             print(f"Error loading question: {e}")
         except FileNotFoundError:
             self.questions = []
@@ -72,7 +83,7 @@ class QuestionManager():
             allow_exit = False
             )
         
-        return Question(
+        return Quiz(
             id=self._generate_id(),
             type="quiz",
             text=text,
@@ -81,22 +92,19 @@ class QuestionManager():
             times_correct=0,
             options=options,
             correct_option=correct_option,
-            correct_answer=None
         )
     
     def form_freeform_question(self):
         text = get_text_input("Enter question text: ")
         correct_answer = get_text_input("Enter correct answer: ")
 
-        return Question(
+        return Freeform(
             id=self._generate_id(),
             type="freeform",
             text=text,
             is_active=True,
             times_shown=0,
             times_correct=0,
-            options=None,
-            correct_option=None,
             correct_answer=correct_answer
         )
 
@@ -130,16 +138,16 @@ class QuestionManager():
                 continue
             
 
-    def add_question(self, question_data: Question):
+    def add_question(self, question_data: Quiz | Freeform):
         if not os.path.isfile(self.FILE_PATH):
             with open(self.FILE_PATH, "w", newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=self.FIELDNAMES)
                 writer.writeheader()
-            
+        
         with open(self.FILE_PATH, "a", newline='') as file:
             writer = csv.DictWriter(file, fieldnames=self.FIELDNAMES)
-            writer.writerow(asdict(question_data))
-        
+            writer.writerow(question_data.to_dict())
+    
         self.questions.append(question_data)
         print("\nQuestion added successfully!\n")
     
@@ -205,22 +213,19 @@ class QuestionManager():
             selected_question = self.get_question_details(questions)
             if selected_question is None:
                 break
-            elif selected_question.is_active:
-                disable_question = get_text_input("\nDo you want to disable this question? (y/n): ")
-                if disable_question.lower() == "y":
-                    selected_question.is_active = False
-                    self.questions[selected_question.id - 1] = selected_question
-                    self.update_questions(self.questions)
-            else:
-                enable_question = get_text_input("\nDo you want to enable this question? (y/n): ")
-                if enable_question.lower() == "y":
-                    selected_question.is_active = True
-                    self.questions[selected_question.id - 1] = selected_question
-                    self.update_questions(self.questions)
+            action = "disable" if selected_question.is_active else "enable"
+            user_input = get_text_input(f"\nDo you want to {action} this question? (y/n): ")
+            if user_input.lower() == "y":
+                selected_question.is_active = not selected_question.is_active
+                for i, q in enumerate(self.questions):
+                    if q.id == selected_question.id:
+                        self.questions[i] = selected_question
+                        break
+                self.update_questions(self.questions)
 
-    def update_questions(self, questions_data:list[Question]):
+    def update_questions(self, questions_data: List[Quiz | Freeform]):
         with open(self.FILE_PATH, "w", newline='') as file:
             writer = csv.DictWriter(file, fieldnames = self.FIELDNAMES)
             writer.writeheader()
             for question in questions_data:
-                writer.writerow(asdict(question))
+                writer.writerow(question.to_dict())

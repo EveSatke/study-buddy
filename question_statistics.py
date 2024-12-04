@@ -11,13 +11,13 @@ class QuestionStatistics:
         total_questions = len(questions)
       
         self.active_count = sum(1 for q in questions if q.is_active)
-        self.success_rate_sum = sum(int(q.times_correct) for q in questions)
-        self.times_shown_sum = sum(int(q.times_shown) for q in questions)
+        self.success_rate_sum = sum(q.times_correct for q in questions)
+        self.times_shown_sum = sum(q.times_shown for q in questions)
 
         print("\n=== QUESTIONS LIST ===\n")
         for question in questions:
             status = "Active ✓" if question.is_active else "Inactive ✗"
-            success_rate = "N/A" if question.times_correct == 0 else f"{round((question.times_correct/question.times_shown) * 100)}%"
+            success_rate = "N/A" if question.times_shown == 0 else f"{round((question.times_correct / question.times_shown) * 100)}%"
             
             print(
                 f"ID: {question.id}\n"
@@ -32,8 +32,12 @@ class QuestionStatistics:
         input("Press Enter to continue...")
 
     def print_total_statistics(self, total_questions):
+        if self.times_shown_sum == 0:
+            average_success_rate = "N/A"  
+        else:
+            average_success_rate = (self.success_rate_sum / self.times_shown_sum) * 100
         print(
             f"Total questions: {total_questions}",
             f"\nActive questions: {self.active_count}",
-            f"\nAverage success rate: {round((self.success_rate_sum/self.times_shown_sum) * 100)}%\n"
-            )
+            f"\nAverage success rate: {round(average_success_rate)}%\n"
+        )

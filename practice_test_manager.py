@@ -10,6 +10,9 @@ class PracticeTestManager:
         self.question_manager = question_manager
         self.active_questions = [q for q in self.question_manager.questions if q.is_active]
 
+    def load_active_questions(self):
+        return [q for q in self.question_manager.questions if q.is_active]
+
     def calculate_weights(self, questions):
         weights = []
         min_weight = 0.1
@@ -17,11 +20,11 @@ class PracticeTestManager:
         for question in questions:
             weight = max(min_weight, (question.times_shown - question.times_correct + 1) / (question.times_shown + 1))
             weights.append(weight)
-            # print(f"Weight for {question.text}: {weight}")
 
         return weights
     
     def select_weighted_question(self, last_question=None):
+        self.active_questions = self.load_active_questions()
         if not self.active_questions:
             return None 
         
@@ -104,13 +107,17 @@ class PracticeTestManager:
                 if next_question == "q":
                     print("Exiting...")
                     break
-        print(f"\nYour score is {test_score} out of {len(selected_questions)}.")
+        print(
+            "\nCongrats! 🎉 "
+            f"\nYou scored {test_score} out of {len(selected_questions)}."
+            )
         self.save_score(test_score, len(selected_questions))
 
         input("\nPress Enter to continue...")
         
 
     def select_random_questions(self):
+        self.active_questions = self.load_active_questions()
         questions_number = get_number_input(
         f"How many questions would you like to answer (from 1 to {len(self.active_questions)})? ", 
             1, 
