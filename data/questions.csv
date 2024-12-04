@@ -1,0 +1,11 @@
+id,type,text,is_active,times_shown,times_correct,options,correct_option,correct_answer
+1,quiz,What is the primary concept of OOP that allows bundling data and methods?,True,0,0,"['Abstraction', 'Encapsulation', 'Inheritance']",2,
+2,quiz,Which method is used to open a file in read mode?,True,2,2,"['file.open()', 'open()', 'file.read()', 'read_file()']",2,
+3,quiz,What Git command creates a new branch?,True,1,1,"['git create', 'git branch', 'git new']",2,
+4,quiz,Which keyword defines a class in Python?,True,2,0,"['define', 'create', 'class']",3,
+5,quiz,What does 'w' mode do when opening a file?,True,0,0,"['Read file', 'Append to file', 'Write file', 'Create file']",3,
+6,freeform,What OOP principle allows a class to inherit properties from another class?,True,1,1,,,Inheritance
+7,freeform,What Git command downloads a repository?,True,1,1,,,git clone
+8,freeform,What Python method closes an open file?,True,2,2,,,close
+9,freeform,What keyword in Python creates an instance method?,True,1,1,,,self
+10,freeform,What Git command merges branches?,True,1,1,,,git merge
