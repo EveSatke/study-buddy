@@ -4,6 +4,7 @@ import ast
 from typing import List
 from question_models import Quiz, Freeform
 from utils.helpers import get_text_input, get_number_input
+from question_storage import QuestionStorage
 
 class QuestionManager():
     FILE_PATH = "data/questions.csv"
@@ -11,44 +12,11 @@ class QuestionManager():
     MIN_QUESTIONS = 5
 
     def __init__(self):
-        self.questions = []
-        self.load_questions()
+        self.storage = QuestionStorage(self.FILE_PATH, self.FIELDNAMES)
+        self.questions = self.storage.load_questions()
 
     def __str__(self):
         return f"questions: {[q.text for q in self.questions]}"
-
-    
-    def load_questions(self):
-        try:
-            with open(self.FILE_PATH, "r") as file:
-                reader = csv.DictReader(file)
-                for row in reader:
-                    if row["type"] == "quiz":
-                        question = Quiz(
-                            id=int(row["id"]),
-                            type=row["type"],
-                            text=row["text"],
-                            is_active=row["is_active"] == 'True',
-                            times_shown=int(row["times_shown"]),
-                            times_correct=int(row["times_correct"]),
-                            options=ast.literal_eval(row["options"]),
-                            correct_option=int(row["correct_option"])
-                        )
-                    else:
-                        question = Freeform(
-                            id=int(row["id"]),
-                            type=row["type"],
-                            text=row["text"],
-                            is_active=row["is_active"] == 'True',
-                            times_shown=int(row["times_shown"]),
-                            times_correct=int(row["times_correct"]),
-                            correct_answer=row["correct_answer"]
-                        )
-                    self.questions.append(question)
-        except (ValueError, KeyError, SyntaxError) as e:
-            print(f"Error loading question: {e}")
-        except FileNotFoundError:
-            self.questions = []
 
     def get_question_type(self):
         print(
@@ -139,17 +107,9 @@ class QuestionManager():
             
 
     def add_question(self, question_data: Quiz | Freeform):
-        if not os.path.isfile(self.FILE_PATH):
-            with open(self.FILE_PATH, "w", newline='') as file:
-                writer = csv.DictWriter(file, fieldnames=self.FIELDNAMES)
-                writer.writeheader()
-        
-        with open(self.FILE_PATH, "a", newline='') as file:
-            writer = csv.DictWriter(file, fieldnames=self.FIELDNAMES)
-            writer.writerow(question_data.to_dict())
-    
+        self.storage.add_question(question_data)
         self.questions.append(question_data)
-        print("\nQuestion added successfully!\n")
+        print("\n✅Question added successfully!\n")
     
 
     def has_minimum_questions(self):
@@ -224,8 +184,4 @@ class QuestionManager():
                 self.update_questions(self.questions)
 
     def update_questions(self, questions_data: List[Quiz | Freeform]):
-        with open(self.FILE_PATH, "w", newline='') as file:
-            writer = csv.DictWriter(file, fieldnames = self.FIELDNAMES)
-            writer.writeheader()
-            for question in questions_data:
-                writer.writerow(question.to_dict())
+        self.storage.save_questions(questions_data)
