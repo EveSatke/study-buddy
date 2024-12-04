@@ -4,8 +4,8 @@ id,type,text,is_active,times_shown,times_correct,options,correct_option,correct_
 3,quiz,What Git command creates a new branch?,True,1,1,"['git create', 'git branch', 'git new']",2,
 4,quiz,Which keyword defines a class in Python?,True,2,0,"['define', 'create', 'class']",3,
 5,quiz,What does 'w' mode do when opening a file?,True,0,0,"['Read file', 'Append to file', 'Write file', 'Create file']",3,
-6,freeform,What OOP principle allows a class to inherit properties from another class?,True,1,1,,,Inheritance
-7,freeform,What Git command downloads a repository?,True,1,1,,,git clone
+6,freeform,What OOP principle allows a class to inherit properties from another class?,True,2,1,,,Inheritance
+7,freeform,What Git command downloads a repository?,True,2,2,,,git clone
 8,freeform,What Python method closes an open file?,True,2,2,,,close
 9,freeform,What keyword in Python creates an instance method?,True,1,1,,,self
 10,freeform,What Git command merges branches?,True,1,1,,,git merge
