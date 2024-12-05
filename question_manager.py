@@ -1,6 +1,3 @@
-import csv
-import os
-import ast
 from typing import List
 from question_models import Quiz, Freeform
 from utils.helpers import get_text_input, get_number_input
@@ -86,25 +83,34 @@ class QuestionManager():
     def create_question(self):
         while True:
             question_type = self.get_question_type()
+            if question_type not in ["1", "2", "3"]:
+                print("Invalid choice. Please try again.")
+                continue
             try:
                 if question_type == "1":
-                    print(f"\nQuestion {self.get_question_count() + 1}")
-                    formed_question = self.form_quiz_question()
+                    self.handle_quiz_question()
                 elif question_type == "2":
-                    print(f"\nQuestion {self.get_question_count() + 1}")
-                    formed_question = self.form_freeform_question()
+                    self.handle_freeform_question()
                 elif question_type == "3":
                     return False
-                else:
-                    print("Invalid choice. Please try again.")
-                    continue
-                self.add_question(formed_question)
                 return True
 
+            except ValueError as e:
+                print(f"Error creating questionL {e}")
             except Exception as e:
                 print(f"Error creating question: {e}")
                 continue
-            
+
+    def handle_quiz_question(self):
+        print(f"\nQuestion {self.get_question_count() + 1}")
+        formed_question = self.form_quiz_question()
+        self.add_question(formed_question)
+
+    def handle_freeform_question(self):
+        print(f"\nQuestion {self.get_question_count() +1}")
+        formed_question = self.form_freeform_question()
+        self.add_question(formed_question)
+
 
     def add_question(self, question_data: Quiz | Freeform):
         self.storage.add_question(question_data)

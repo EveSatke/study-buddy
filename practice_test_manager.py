@@ -60,7 +60,7 @@ class PracticeTestManager:
                 score = 1
                 return score
             else:
-                print(f"❌Incorrect! The correct answer was {question.correct_answer}.")
+                print(f"❌Incorrect! The correct answer was '{question.correct_answer}'.")
                 return False
 
     
