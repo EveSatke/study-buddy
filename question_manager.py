@@ -2,6 +2,8 @@ from typing import List
 from question_models import Quiz, Freeform
 from utils.helpers import get_text_input, get_number_input
 from question_storage import QuestionStorage
+from colorama import Fore
+
 
 class QuestionManager():
     FILE_PATH = "data/questions.csv"
@@ -17,7 +19,7 @@ class QuestionManager():
 
     def get_question_type(self):
         print(
-            "\n=== ADD QUESTIONS ===\n"
+            f"{Fore.YELLOW}\n=== ADD QUESTIONS ===\n{Fore.RESET}"
             "Select question type:\n"
             "1. Quiz\n" 
             "2. Free-form\n"
@@ -73,18 +75,11 @@ class QuestionManager():
             correct_answer=correct_answer
         )
 
-    def get_question_count(self):
-        try:
-            with open(self.FILE_PATH, "r") as file:
-                return sum(1 for line in file) - 1
-        except FileNotFoundError:
-            return 0
-
     def create_question(self):
         while True:
             question_type = self.get_question_type()
             if question_type not in ["1", "2", "3"]:
-                print("Invalid choice. Please try again.")
+                print(f"{Fore.RED}Invalid choice. Please try again.{Fore.RESET}")
                 continue
             try:
                 if question_type == "1":
@@ -102,12 +97,12 @@ class QuestionManager():
                 continue
 
     def handle_quiz_question(self):
-        print(f"\nQuestion {self.get_question_count() + 1}")
+        print(f"\nQuestion {len(self.questions) + 1}")
         formed_question = self.form_quiz_question()
         self.add_question(formed_question)
 
     def handle_freeform_question(self):
-        print(f"\nQuestion {self.get_question_count() +1}")
+        print(f"\nQuestion {len(self.questions) +1}")
         formed_question = self.form_freeform_question()
         self.add_question(formed_question)
 
@@ -115,14 +110,14 @@ class QuestionManager():
     def add_question(self, question_data: Quiz | Freeform):
         self.storage.add_question(question_data)
         self.questions.append(question_data)
-        print("\n✅Question added successfully!\n")
+        print(f"\n{Fore.GREEN}✅ Question added successfully!{Fore.RESET}\n")
     
 
     def has_minimum_questions(self):
-        return self.get_question_count() >= self.MIN_QUESTIONS
+        return len(self.questions) >= self.MIN_QUESTIONS
     
     def add_questions(self):
-        remaining = max((self.MIN_QUESTIONS - self.get_question_count()), 1)
+        remaining = max((self.MIN_QUESTIONS - len(self.questions)), 1)
 
         while remaining > 0:
             if self.create_question():
@@ -132,21 +127,21 @@ class QuestionManager():
 
     def display_questions_status(self):
         questions = self.questions
-        print("\n=== ENABLE/DISABLE QUESTIONS ===\n")
+        print(f"{Fore.YELLOW}\n=== ENABLE/DISABLE QUESTIONS ===\n{Fore.RESET}")
 
         print("Current Questions:")
         print(f"{'ID':<4} {'Status':<10} {'Type':<10} {'Question Preview':<50}")
         print("-" * 74)
 
         for question in questions:
-            status = "[ACTIVE]" if question.is_active else "[INACTIVE]"
+            status = f"{Fore.GREEN}[ACTIVE]{Fore.RESET}" if question.is_active else f"{Fore.RED}[INACTIVE]{Fore.RESET}"
             preview = question.text[:40] + "..." if len(question.text) > 40 else question.text
             print(f"{question.id:<4} {status:<10} {question.type:<10} {preview:<50}")
 
         return questions
     
     def get_question_details(self, questions):
-        question_id = get_number_input("\nEnter question ID to toggle status (or 'q' to quit): ", 1, self.get_question_count(), allow_exit=True)
+        question_id = get_number_input("\nEnter question ID to toggle status (or 'q' to quit): ", 1, len(self.questions), allow_exit=True)
         if question_id == "q":
             return None
             
@@ -157,7 +152,7 @@ class QuestionManager():
                     "----------------\n"
                     f"ID: {q.id}\n"
                     f"Type: {q.type}\n"
-                    f"Status: {"[ACTIVE]" if q.is_active else "[INACTIVE]"}\n"
+                    f"Status: {"[ACTIVE]" if q.is_active else f"[INACTIVE]"}\n"
                     f"Text: {q.text}"
                 )
                 if q.type == "quiz":
@@ -176,6 +171,9 @@ class QuestionManager():
     def manage_question_status(self):
         while True:
             questions = self.display_questions_status()
+            if not questions:
+                print(f"{Fore.RED}No questions available. Please add questions first.{Fore.RESET}")
+                return False
             selected_question = self.get_question_details(questions)
             if selected_question is None:
                 break

@@ -51,7 +51,7 @@ class QuestionStorage:
                 writer.writerow(question.to_dict())
 
     def add_question(self, question: Quiz | Freeform):
-        if not os.path.isfile(self.file_path):
+        if not os.path.isfile(self.file_path) or os.path.getsize(self.file_path) == 0:
             with open(self.file_path, "w", newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=self.fieldnames)
                 writer.writeheader()

@@ -2,6 +2,7 @@ import random
 from datetime import datetime
 from question_manager import QuestionManager
 from utils.helpers import get_text_input, get_number_input, get_continue_input
+from colorama import Fore
 
 class PracticeTestManager:
     RESULTS_PATH = "results.txt"
@@ -45,33 +46,33 @@ class PracticeTestManager:
                 print(f"{i}. {option}")
             answer = get_number_input(f"\nChoose the correct option (1-{len(question.options)}): ", 1, len(question.options))
             if answer == question.correct_option:
-                print("✅Correct!")
+                print(f"{Fore.GREEN}✅Correct!{Fore.RESET}")
                 question.times_correct += 1
                 score = 1
                 return score
             else:
-                print(f"❌Incorrect! The correct option was {question.correct_option}.")
+                print(f"{Fore.RED}❌Incorrect! The correct option was {question.correct_option}.{Fore.RESET}")
                 return False
         else:
             answer = get_text_input("Your answer: ")
             if answer.lower() == question.correct_answer.lower():
-                print("✅Correct!")
+                print(f"{Fore.GREEN}✅Correct!{Fore.RESET}")
                 question.times_correct += 1
                 score = 1
                 return score
             else:
-                print(f"❌Incorrect! The correct answer was '{question.correct_answer}'.")
+                print(f"{Fore.RED}❌Incorrect! The correct answer was '{question.correct_answer}'.{Fore.RESET}")
                 return False
 
     
     def practice_mode(self):
         print(
-            "\n=== PRACTICE MODE ===")
+            f"{Fore.YELLOW}\n=== PRACTICE MODE ===\n{Fore.RESET}")
         last_question = None
         while True:
             question = self.select_weighted_question(last_question)
             if not question:
-                print("No questions available for practice.")
+                print(f"{Fore.RED}No questions available for practice.{Fore.RESET}")
                 break
             print()    
             self.ask_question(question)
@@ -81,21 +82,26 @@ class PracticeTestManager:
             last_question = question
             next_question = get_continue_input("\nPress Enter to continue to the next question or 'q' to quit...")
             if next_question == "q":
-                print("Exiting...")
+                print(f"{Fore.RED}Exiting...{Fore.RESET}")
                 break
 
     def test_mode(self):
+        self.active_questions = self.load_active_questions()
+        if not self.active_questions:
+            print(f"{Fore.RED}No questions available for test.{Fore.RESET}")
+            return False
+
         test_score = 0
         print(
-            "\n=== TEST MODE ===\n"
+            f"{Fore.YELLOW}\n=== TEST MODE ===\n{Fore.RESET}"
             "You can choose how many questions you'd like to answer.\n"
             "Each question will appear only once."
-            )
+        )
   
         selected_questions = self.select_random_questions()
 
         if not selected_questions:
-            print("No questions available for test.")
+            print(f"{Fore.RED}No questions available for test.{Fore.RESET}")
             return False
         
         print("Starting your test...")
@@ -108,9 +114,9 @@ class PracticeTestManager:
                     print("Exiting...")
                     break
         print(
-            "\nCongrats! 🎉 "
-            f"\nYou scored {test_score} out of {len(selected_questions)}."
-            )
+            f"{Fore.GREEN}\nCongrats! 🎉 {Fore.RESET}   "
+            f"\nYou scored {Fore.CYAN}{test_score}{Fore.RESET} out of {len(selected_questions)}."
+        )
         self.save_score(test_score, len(selected_questions))
 
         input("\nPress Enter to continue...")

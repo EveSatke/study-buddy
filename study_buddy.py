@@ -1,6 +1,7 @@
 from question_manager import QuestionManager
 from question_statistics import QuestionStatistics
 from practice_test_manager import PracticeTestManager
+from colorama import Fore
 
 class StudyBuddy:
     def __init__(self):
@@ -31,7 +32,7 @@ class StudyBuddy:
 
     def _display_menu(self):
         print(
-            "\n=== STUDY BUDDY ===\n"
+            f"{Fore.YELLOW}\n=== STUDY BUDDY ===\n{Fore.RESET}"
             "1. Add Questions\n"
             "2. View Statistics\n"
             "3. Manage Questions (Enable/Disable)\n"
@@ -56,8 +57,8 @@ class StudyBuddy:
     
     def _handle_mode(self, mode):
         if not self.question_manager.has_minimum_questions():
-            print(f"\nYou need at least {self.question_manager.MIN_QUESTIONS} questions before starting Practice/Test mode.")
-            print(f"Please add {self.question_manager.MIN_QUESTIONS - self.question_manager.get_question_count()} more questions.")
+            print(f"\n{Fore.RED}You need at least {self.question_manager.MIN_QUESTIONS} questions before starting Practice/Test mode.{Fore.RESET}")
+            print(f"{Fore.RED}Please add {self.question_manager.MIN_QUESTIONS - len(self.question_manager.questions)} more questions.{Fore.RESET}")
             self.question_manager.add_questions()
         else:
             if mode == "practice":
@@ -67,12 +68,12 @@ class StudyBuddy:
         return True
     
     def _handle_exit(self):
-        print("Exiting...")
+        print(f"{Fore.YELLOW}Exiting...{Fore.RESET}")
         return False
     
     def _check_questions_exist(self):
-        if self.question_manager.get_question_count() == 0:
-            print("There are no questions. Please add at least 1 question.")
+        if len(self.question_manager.questions) == 0:
+            print(f"{Fore.RED}There are no questions. Please add at least 1 question.{Fore.RESET}")
             self.question_manager.add_questions()
             return False
         return True
