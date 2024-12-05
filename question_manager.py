@@ -11,7 +11,7 @@ class QuestionManager():
     MIN_QUESTIONS = 5
 
     def __init__(self):
-        self.storage = QuestionStorage(self.FILE_PATH, self.FIELDNAMES)
+        self.storage = QuestionStorage(QuestionManager.FILE_PATH, QuestionManager.FIELDNAMES)
         self.questions = self.storage.load_questions()
 
     def __str__(self):
@@ -30,7 +30,7 @@ class QuestionManager():
 
     def _generate_id(self):
         try:
-            with open(self.FILE_PATH, "r") as file:
+            with open(QuestionManager.FILE_PATH, "r") as file:
                 return sum(1 for line in file)
         except FileNotFoundError:
             return 1
@@ -114,10 +114,10 @@ class QuestionManager():
     
 
     def has_minimum_questions(self):
-        return len(self.questions) >= self.MIN_QUESTIONS
+        return len(self.questions) >= QuestionManager.MIN_QUESTIONS
     
     def add_questions(self):
-        remaining = max((self.MIN_QUESTIONS - len(self.questions)), 1)
+        remaining = max((QuestionManager.MIN_QUESTIONS - len(self.questions)), 1)
 
         while remaining > 0:
             if self.create_question():

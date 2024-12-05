@@ -132,6 +132,6 @@ class PracticeTestManager:
         return random.sample(self.active_questions, questions_number)
     
     def save_score(self, score, questions_number):
-        with open(self.RESULTS_PATH, "a") as file:
+        with open(PracticeTestManager.RESULTS_PATH, "a") as file:
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             file.write(f"{current_time} - Score: {score} out of {questions_number}\n")

@@ -3,7 +3,6 @@ from question_manager import QuestionManager
 from colorama import Fore
 
 class QuestionStatistics:
-    FILE_PATH = "data/questions.csv"
     def __init__(self, question_manager):
         self.question_manager = question_manager
 
