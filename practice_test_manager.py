@@ -5,7 +5,7 @@ from utils.helpers import get_text_input, get_number_input, get_continue_input
 from colorama import Fore
 
 class PracticeTestManager:
-    RESULTS_PATH = "results.txt"
+    RESULTS_PATH = "data/results.txt"
 
     def __init__(self, question_manager:QuestionManager):
         self.question_manager = question_manager
