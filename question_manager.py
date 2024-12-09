@@ -1,4 +1,3 @@
-from typing import List
 from question_models import Quiz, Freeform
 from utils.helpers import get_text_input, get_number_input
 from question_storage import QuestionStorage
@@ -31,7 +30,7 @@ class QuestionManager():
     def _generate_id(self):
         try:
             with open(QuestionManager.FILE_PATH, "r") as file:
-                return sum(1 for line in file)
+                return sum(1 for _ in file)
         except FileNotFoundError:
             return 1
 
@@ -152,7 +151,7 @@ class QuestionManager():
                     "----------------\n"
                     f"ID: {q.id}\n"
                     f"Type: {q.type}\n"
-                    f"Status: {"[ACTIVE]" if q.is_active else f"[INACTIVE]"}\n"
+                    f"Status: {"[ACTIVE]" if q.is_active else "[INACTIVE]"}\n"
                     f"Text: {q.text}"
                 )
                 if q.type == "quiz":
@@ -175,7 +174,7 @@ class QuestionManager():
                 print(f"{Fore.RED}No questions available. Please add questions first.{Fore.RESET}")
                 return False
             selected_question = self.get_question_details(questions)
-            if selected_question is None:
+            if not selected_question:
                 break
             action = "disable" if selected_question.is_active else "enable"
             user_input = get_text_input(f"\nDo you want to {action} this question? (y/n): ")
@@ -187,5 +186,5 @@ class QuestionManager():
                         break
                 self.update_questions(self.questions)
 
-    def update_questions(self, questions_data: List[Quiz | Freeform]):
+    def update_questions(self, questions_data: list[Quiz | Freeform]):
         self.storage.save_questions(questions_data)

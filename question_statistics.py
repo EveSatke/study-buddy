@@ -1,4 +1,3 @@
-import csv
 from question_manager import QuestionManager
 from colorama import Fore
 

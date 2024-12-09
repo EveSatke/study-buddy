@@ -14,7 +14,6 @@ def get_number_input(prompt, min_value, max_value, allow_exit=False):
             print(f"{Fore.RED}Please enter a number between {min_value} to {max_value}{Fore.RESET}")
         except ValueError:
             print(f"{Fore.RED}Invalid input. Please enter a number.{Fore.RESET}")
-            pass
 
 def get_text_input(prompt):
     while True:
