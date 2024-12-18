@@ -1,6 +1,8 @@
+from abc import ABC, abstractmethod
 from typing import List
+import ast
 
-class Question:
+class Question(ABC):
     def __init__(self, id, type, text, is_active, times_shown, times_correct):
         self.id = id
         self.type = type
@@ -68,12 +70,33 @@ class Question:
             raise ValueError("Times correct must be an integer")
         self._times_correct = value
 
+    @abstractmethod
+    def to_dict(self):
+        pass
+
+    @abstractmethod
+    def fromCsvRow(row):
+        pass
+
 
 class Quiz(Question):
     def __init__(self, id, type, text, is_active, times_shown, times_correct, options, correct_option):
         super().__init__(id, type, text, is_active, times_shown, times_correct)
         self.options = options
         self.correct_option = correct_option
+
+    @staticmethod
+    def fromCsvRow(row):
+        return Quiz(
+            id=int(row["id"]),
+            type=row["type"],
+            text=row["text"],
+            is_active=row["is_active"] == 'True',
+            times_shown=int(row["times_shown"]),
+            times_correct=int(row["times_correct"]),
+            options=ast.literal_eval(row["options"]),
+            correct_option=int(row["correct_option"])
+        )
 
     def to_dict(self):
         return {
@@ -113,6 +136,18 @@ class Freeform(Question):
     def __init__(self, id, type, text, is_active, times_shown, times_correct, correct_answer):
         super().__init__(id, type, text, is_active, times_shown, times_correct)
         self.correct_answer = correct_answer
+
+    @staticmethod
+    def fromCsvRow(row):
+        return Freeform(
+            id=int(row["id"]),
+            type=row["type"],
+            text=row["text"],
+            is_active=row["is_active"] == 'True',
+            times_shown=int(row["times_shown"]),
+            times_correct=int(row["times_correct"]),
+            correct_answer=row["correct_answer"]
+        )
 
     def to_dict(self):
         return {

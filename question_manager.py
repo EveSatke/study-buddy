@@ -4,14 +4,15 @@ from question_storage import QuestionStorage
 from colorama import Fore
 
 
-class QuestionManager():
+class QuestionManager:
     FILE_PATH = "data/questions.csv"
     FIELDNAMES = ["id", "type", "text", "is_active", "times_shown", "times_correct", "options", "correct_option", "correct_answer"]
     MIN_QUESTIONS = 5
 
-    def __init__(self):
-        self.storage = QuestionStorage(QuestionManager.FILE_PATH, QuestionManager.FIELDNAMES)
+    def __init__(self, question_storage: QuestionStorage):
+        self.storage = question_storage
         self.questions = self.storage.load_questions()
+   
 
     def __str__(self):
         return f"questions: {[q.text for q in self.questions]}"

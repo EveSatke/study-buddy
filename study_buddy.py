@@ -1,45 +1,56 @@
 from question_manager import QuestionManager
 from question_statistics import QuestionStatistics
 from practice_test_manager import PracticeTestManager
+from question_storage import QuestionStorage
 from colorama import Fore
+from enum import Enum
+from utils.helpers import get_number_input
+
+class MenuOption(Enum):
+    ADD_QUESTIONS = "Add Questions"
+    VIEW_STATISTICS = "View Statistics"
+    MANAGE_QUESTIONS = "Manage Questions (Enable/Disable)"
+    PRACTICE_MODE = "Practice Mode"
+    TEST_MODE = "Test Mode"
+    EXIT = "Exit"
 
 class StudyBuddy:
     def __init__(self):
-        self.question_manager = QuestionManager()
+        question_storage = QuestionStorage(
+            file_path=QuestionManager.FILE_PATH,
+            fieldnames=QuestionManager.FIELDNAMES
+        )
+        
+        self.question_manager = QuestionManager(question_storage)
         self.questions_statistics = QuestionStatistics(self.question_manager)
         self.practice_test_manager = PracticeTestManager(self.question_manager)
         self.menu_options = {
-            "1": self._handle_add_questions,
-            "2": self._handle_statistics,
-            "3": self._handle_manage_questions,
-            "4": lambda:self._handle_mode("practice"),
-            "5": lambda:self._handle_mode("test"),
-            "6": self._handle_exit
+            MenuOption.ADD_QUESTIONS: self._handle_add_questions,
+            MenuOption.VIEW_STATISTICS: self._handle_statistics,
+            MenuOption.MANAGE_QUESTIONS: self._handle_manage_questions,
+            MenuOption.PRACTICE_MODE: lambda: self._handle_mode("practice"),
+            MenuOption.TEST_MODE: lambda: self._handle_mode("test"),
+            MenuOption.EXIT: self._handle_exit
         }
         
 
     def main_menu(self):
         while True:
             self._display_menu()
-            choice = input("Choose an option (1-6): ")
-
-            if choice in self.menu_options:
-                if self.menu_options[choice]() is False:
+            choice = get_number_input("Choose an option (1-6): ", 1, len(MenuOption))
+            try:
+                selected_option = list(MenuOption)[choice - 1]
+                if self.menu_options[selected_option]() is False:
                     break
-            else:
+            except (IndexError, ValueError):
                 print("Invalid option. Please enter option 1-6.")
 
 
     def _display_menu(self):
-        print(
-            f"{Fore.YELLOW}\n=== STUDY BUDDY ===\n{Fore.RESET}"
-            "1. Add Questions\n"
-            "2. View Statistics\n"
-            "3. Manage Questions (Enable/Disable)\n"
-            "4. Practice Mode\n"
-            "5. Test Mode\n"
-            "6. Exit\n"
-            )
+        print(f"{Fore.YELLOW}\n=== STUDY BUDDY ==={Fore.RESET}")
+        for index, option in enumerate(MenuOption, start=1):
+            print(f"{index}. {option.value}")
+        print()
         
     def _handle_add_questions(self):
         self.question_manager.add_questions()

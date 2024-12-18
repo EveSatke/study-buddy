@@ -1,5 +1,4 @@
 import csv
-import ast
 import os
 from typing import List
 from question_models import Quiz, Freeform
@@ -16,31 +15,18 @@ class QuestionStorage:
                 reader = csv.DictReader(file)
                 for row in reader:
                     if row["type"] == "quiz":
-                        question = Quiz(
-                            id=int(row["id"]),
-                            type=row["type"],
-                            text=row["text"],
-                            is_active=row["is_active"] == 'True',
-                            times_shown=int(row["times_shown"]),
-                            times_correct=int(row["times_correct"]),
-                            options=ast.literal_eval(row["options"]),
-                            correct_option=int(row["correct_option"])
-                        )
+                        question = Quiz.fromCsvRow(row)
                     else:
-                        question = Freeform(
-                            id=int(row["id"]),
-                            type=row["type"],
-                            text=row["text"],
-                            is_active=row["is_active"] == 'True',
-                            times_shown=int(row["times_shown"]),
-                            times_correct=int(row["times_correct"]),
-                            correct_answer=row["correct_answer"]
-                        )
+                        question = Freeform.fromCsvRow(row)
                     questions.append(question)
-        except (ValueError, KeyError, SyntaxError) as e:
-            print(f"Error loading question: {e}")
+        except ValueError as e:
+            print(f"ValueError: Incorrect data format in file. {e}")
+        except KeyError as e:
+            print(f"KeyError: Missing expected key in data. {e}")
+        except SyntaxError as e:
+            print(f"SyntaxError: Syntax issue in data parsing. {e}")
         except FileNotFoundError:
-            pass
+            print("FileNotFoundError: The specified file was not found.")
         return questions
 
     def save_questions(self, questions: List[Quiz | Freeform]):
